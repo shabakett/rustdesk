@@ -320,16 +320,7 @@ class DesktopTab extends StatelessWidget {
     if (tabType != DesktopTabType.main) {
       return child;
     }
-    return buildRemoteBlock(
-        child: child,
-        use: () async {
-          var access_mode = await bind.mainGetOption(key: kOptionAccessMode);
-          var option = option2bool(
-              kOptionAllowRemoteConfigModification,
-              await bind.mainGetOption(
-                  key: kOptionAllowRemoteConfigModification));
-          return access_mode == 'view' || (access_mode.isEmpty && !option);
-        });
+    return buildRemoteBlock(child: child, use: canBeBlocked);
   }
 
   List<Widget> _tabWidgets = [];
@@ -397,6 +388,8 @@ class DesktopTab extends StatelessWidget {
                     : null,
                 onPanStart: (_) => startDragging(isMainWindow),
                 onPanCancel: () {
+                  // We want to disable dragging of the tab area in the tab bar.
+                  // Disable dragging is needed because macOS handles dragging by default.
                   if (isMacOS) {
                     setMovable(isMainWindow, false);
                   }

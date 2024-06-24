@@ -6,6 +6,7 @@ import 'package:bot_toast/bot_toast.dart';
 import 'package:desktop_multi_window/desktop_multi_window.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_hbb/common/widgets/overlay.dart';
 import 'package:flutter_hbb/desktop/pages/desktop_tab_page.dart';
 import 'package:flutter_hbb/desktop/pages/install_page.dart';
 import 'package:flutter_hbb/desktop/pages/server_page.dart';
@@ -95,7 +96,9 @@ Future<void> main(List<String> args) async {
     desktopType = DesktopType.main;
     await windowManager.ensureInitialized();
     windowManager.setPreventClose(true);
-    windowManager.setMovable(false);
+    if (isMacOS) {
+      disableWindowMovable(kWindowId);
+    }
     runMainApp(true);
   }
 }
@@ -154,6 +157,7 @@ void runMobileApp() async {
   await initEnv(kAppTypeMain);
   if (isAndroid) androidChannelInit();
   if (isAndroid) platformFFI.syncAndroidServiceAppDirConfigPath();
+  draggablePositions.load();
   await Future.wait([gFFI.abModel.loadCache(), gFFI.groupModel.loadCache()]);
   gFFI.userModel.refreshCurrentUser();
   runApp(App());
@@ -168,10 +172,13 @@ void runMultiWindow(
   final title = getWindowName();
   // set prevent close to true, we handle close event manually
   WindowController.fromWindowId(kWindowId!).setPreventClose(true);
-  WindowController.fromWindowId(kWindowId!).setMovable(false);
+  if (isMacOS) {
+    disableWindowMovable(kWindowId);
+  }
   late Widget widget;
   switch (appType) {
     case kAppTypeDesktopRemote:
+      draggablePositions.load();
       widget = DesktopRemoteScreen(
         params: argument,
       );
